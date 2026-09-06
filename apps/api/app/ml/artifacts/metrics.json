@@ -1,0 +1,229 @@
+{
+  "best_model": "Random Forest Classifier (Ensemble)",
+  "selected_metrics": {
+    "model_name": "Random Forest Classifier (Ensemble)",
+    "accuracy": 100.0,
+    "precision": 100.0,
+    "recall": 100.0,
+    "f1_score": 100.0,
+    "roc_auc": 100.0,
+    "pr_auc": 100.0,
+    "cv_roc_auc_mean": 100.0,
+    "cv_roc_auc_std": 0.0,
+    "cv_f1_mean": 100.0
+  },
+  "leaderboard": [
+    {
+      "model_name": "Random Forest Classifier (Ensemble)",
+      "accuracy": 100.0,
+      "precision": 100.0,
+      "recall": 100.0,
+      "f1_score": 100.0,
+      "roc_auc": 100.0,
+      "pr_auc": 100.0,
+      "cv_roc_auc_mean": 100.0,
+      "cv_roc_auc_std": 0.0,
+      "cv_f1_mean": 100.0
+    },
+    {
+      "model_name": "Gradient Boosting Classifier",
+      "accuracy": 100.0,
+      "precision": 100.0,
+      "recall": 100.0,
+      "f1_score": 100.0,
+      "roc_auc": 100.0,
+      "pr_auc": 100.0,
+      "cv_roc_auc_mean": 100.0,
+      "cv_roc_auc_std": 0.0,
+      "cv_f1_mean": 100.0
+    },
+    {
+      "model_name": "Logistic Regression (Baseline)",
+      "accuracy": 100.0,
+      "precision": 100.0,
+      "recall": 100.0,
+      "f1_score": 100.0,
+      "roc_auc": 100.0,
+      "pr_auc": 100.0,
+      "cv_roc_auc_mean": 100.0,
+      "cv_roc_auc_std": 0.0,
+      "cv_f1_mean": 100.0
+    }
+  ],
+  "dataset_summary": {
+    "total_samples": 5000,
+    "train_samples": 4000,
+    "test_samples": 1000,
+    "fraud_rate_pct": 17.7,
+    "clean_records": 4115,
+    "fraud_records": 885
+  },
+  "confusion_matrix": {
+    "matrix": [
+      [
+        823,
+        0
+      ],
+      [
+        0,
+        177
+      ]
+    ],
+    "true_negatives": 823,
+    "false_positives": 0,
+    "false_negatives": 0,
+    "true_positives": 177,
+    "specificity": 100.0,
+    "sensitivity": 100.0
+  },
+  "feature_importances": [
+    {
+      "feature": "owner_name_similarity",
+      "display_name": "Owner Name Similarity",
+      "importance": 23.94
+    },
+    {
+      "feature": "stamp_duty_ratio",
+      "display_name": "Stamp Duty Ratio",
+      "importance": 23.68
+    },
+    {
+      "feature": "area_variance_pct",
+      "display_name": "Area Variance Pct",
+      "importance": 15.33
+    },
+    {
+      "feature": "boundary_overlap_ratio",
+      "display_name": "Boundary Overlap Ratio",
+      "importance": 13.62
+    },
+    {
+      "feature": "ocr_confidence",
+      "display_name": "Ocr Confidence",
+      "importance": 7.84
+    },
+    {
+      "feature": "temporal_date_gap_days",
+      "display_name": "Temporal Date Gap Days",
+      "importance": 6.8
+    },
+    {
+      "feature": "mutation_status_APPROVED",
+      "display_name": "Mutation Status Approved",
+      "importance": 3.39
+    },
+    {
+      "feature": "prior_dispute_flag",
+      "display_name": "Prior Dispute Flag",
+      "importance": 2.86
+    },
+    {
+      "feature": "encumbrance_status_NIL",
+      "display_name": "Encumbrance Status Nil",
+      "importance": 1.37
+    },
+    {
+      "feature": "mutation_status_REJECTED",
+      "display_name": "Mutation Status Rejected",
+      "importance": 0.51
+    }
+  ],
+  "roc_curve": [
+    {
+      "fpr": 0.0,
+      "tpr": 0.0
+    },
+    {
+      "fpr": 0.0,
+      "tpr": 0.8475
+    },
+    {
+      "fpr": 0.0,
+      "tpr": 0.8531
+    },
+    {
+      "fpr": 0.0,
+      "tpr": 0.8701
+    },
+    {
+      "fpr": 0.0,
+      "tpr": 0.8814
+    },
+    {
+      "fpr": 0.0,
+      "tpr": 0.9153
+    },
+    {
+      "fpr": 0.0,
+      "tpr": 0.9266
+    },
+    {
+      "fpr": 0.0,
+      "tpr": 0.9605
+    },
+    {
+      "fpr": 0.0,
+      "tpr": 0.9774
+    },
+    {
+      "fpr": 0.0,
+      "tpr": 0.9887
+    },
+    {
+      "fpr": 0.0,
+      "tpr": 1.0
+    },
+    {
+      "fpr": 0.0049,
+      "tpr": 1.0
+    },
+    {
+      "fpr": 0.0073,
+      "tpr": 1.0
+    },
+    {
+      "fpr": 0.017,
+      "tpr": 1.0
+    },
+    {
+      "fpr": 0.0194,
+      "tpr": 1.0
+    },
+    {
+      "fpr": 0.0437,
+      "tpr": 1.0
+    },
+    {
+      "fpr": 0.0486,
+      "tpr": 1.0
+    },
+    {
+      "fpr": 0.0498,
+      "tpr": 1.0
+    },
+    {
+      "fpr": 1.0,
+      "tpr": 1.0
+    }
+  ],
+  "feature_names": {
+    "numerical": [
+      "stated_area_acres",
+      "gis_calculated_area_acres",
+      "area_variance_pct",
+      "boundary_overlap_ratio",
+      "owner_name_similarity",
+      "temporal_date_gap_days",
+      "registration_year",
+      "subdivision_depth",
+      "ocr_confidence",
+      "stamp_duty_ratio",
+      "prior_dispute_flag"
+    ],
+    "categorical": [
+      "document_type",
+      "encumbrance_status",
+      "mutation_status"
+    ]
+  }
+}

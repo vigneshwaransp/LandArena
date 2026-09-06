@@ -1,0 +1,80 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600;1,700&family=Source+Sans+3:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: #F9F8F4;
+    --foreground: #2D3A31;
+    --card: #FFFFFF;
+    --card-foreground: #2D3A31;
+    --border: #E6E2DA;
+    --primary: #2D3A31;
+    --accent: #8C9A84;
+    --muted: #F2F0EB;
+    --muted-foreground: #73826B;
+    --terracotta: #C27B66;
+  }
+
+  body {
+    background-color: #F9F8F4;
+    color: #2D3A31;
+    font-family: 'Source Sans 3', system-ui, -apple-system, sans-serif;
+    overflow-x: hidden;
+    letter-spacing: -0.01em;
+  }
+
+  h1, h2, h3, h4, .font-editorial {
+    font-family: 'Playfair Display', Georgia, serif;
+    letter-spacing: -0.02em;
+  }
+}
+
+/* Tactile organic scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #F2F0EB;
+}
+::-webkit-scrollbar-thumb {
+  background: #D2DAD0;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #8C9A84;
+}
+
+/* Smooth organic easing */
+* {
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Roman Arch & Organic shapes */
+.arch-mask {
+  border-top-left-radius: 200px;
+  border-top-right-radius: 200px;
+}
+
+.arch-card {
+  border-radius: 28px;
+}
+
+/* MapLibre canvas container */
+.maplibregl-canvas-container {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Subtle botanical pulse */
+@keyframes botanicalPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.02); opacity: 0.85; }
+}
+
+.animate-botanical-pulse {
+  animation: botanicalPulse 3s ease-in-out infinite;
+}
