@@ -1,6 +1,23 @@
-const API_BASE = typeof window !== 'undefined' 
-  ? (process.env.NEXT_PUBLIC_API_URL || '/api')
-  : (process.env.INTERNAL_API_URL || 'http://127.0.0.1:8000/api');
+function getApiBase(): string {
+  if (typeof window !== 'undefined') {
+    const publicUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (!publicUrl) return '/api';
+    let base = publicUrl.trim().replace(/\/+$/, '');
+    if (!base.startsWith('http://') && !base.startsWith('https://') && !base.startsWith('/')) {
+      base = `https://${base}`;
+    }
+    return base.endsWith('/api') ? base : `${base}/api`;
+  }
+  const internalUrl = process.env.INTERNAL_API_URL || process.env.BACKEND_API_URL || 'http://127.0.0.1:8000';
+  let base = internalUrl.trim().replace(/\/+$/, '');
+  if (!base.startsWith('http://') && !base.startsWith('https://')) {
+    base = `https://${base}`;
+  }
+  return base.endsWith('/api') ? base : `${base}/api`;
+}
+
+const API_BASE = getApiBase();
+
 
 class ApiClient {
   private getToken(): string | null {
