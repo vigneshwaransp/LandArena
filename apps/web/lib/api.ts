@@ -1,23 +1,34 @@
-function getApiBase(): string {
+export function getApiBase(): string {
   if (typeof window !== 'undefined') {
+    const customUrl = localStorage.getItem('custom_api_url');
+    if (customUrl && customUrl.trim()) {
+      let base = customUrl.trim().replace(/\/+$/, '');
+      return base.endsWith('/api') ? base : `${base}/api`;
+    }
     const publicUrl = process.env.NEXT_PUBLIC_API_URL;
-    if (!publicUrl) return '/api';
+    // In browser: only use NEXT_PUBLIC_API_URL if it has a public domain with dots
+    // Never use private hostnames (e.g. 'landarena-api') or localhost on remote web deployments
+    if (!publicUrl || !publicUrl.includes('.') || (publicUrl.includes('localhost') && !window.location.hostname.includes('localhost'))) {
+      return '/api';
+    }
     let base = publicUrl.trim().replace(/\/+$/, '');
-    if (!base.startsWith('http://') && !base.startsWith('https://') && !base.startsWith('/')) {
+    if (!base.startsWith('http://') && !base.startsWith('https://')) {
       base = `https://${base}`;
     }
     return base.endsWith('/api') ? base : `${base}/api`;
   }
   const internalUrl = process.env.INTERNAL_API_URL || process.env.BACKEND_API_URL || 'http://127.0.0.1:8000';
   let base = internalUrl.trim().replace(/\/+$/, '');
+  const isInternal = !base.includes('.') || base.includes('localhost') || base.includes('127.0.0.1');
   if (!base.startsWith('http://') && !base.startsWith('https://')) {
-    base = `https://${base}`;
+    if (isInternal) {
+      base = base.includes(':') ? `http://${base}` : `http://${base}:10000`;
+    } else {
+      base = `https://${base}`;
+    }
   }
   return base.endsWith('/api') ? base : `${base}/api`;
 }
-
-const API_BASE = getApiBase();
-
 
 class ApiClient {
   private getToken(): string | null {
@@ -40,7 +51,8 @@ class ApiClient {
   }
 
   async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const url = `${API_BASE}${endpoint}`;
+    const base = getApiBase();
+    const url = `${base}${endpoint}`;
     const headers = {
       ...this.getHeaders(options.body instanceof FormData ? '' : 'application/json'),
       ...options.headers,

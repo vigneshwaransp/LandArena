@@ -3,6 +3,7 @@ import './globals.css';
 import Sidebar from '@/components/Sidebar';
 import Navbar from '@/components/Navbar';
 import AIAssistantDrawer from '@/components/AIAssistantDrawer';
+import ApiStatusBanner from '@/components/ApiStatusBanner';
 
 export const metadata: Metadata = {
   title: 'Land Record Intelligence | Botanical Cadastral System',
@@ -32,6 +33,7 @@ export default function RootLayout({
 
           {/* Main Content Area */}
           <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#F9F8F4]">
+            <ApiStatusBanner />
             <Navbar />
             <main className="flex-1 overflow-y-auto p-6 md:p-8 relative">
               {children}

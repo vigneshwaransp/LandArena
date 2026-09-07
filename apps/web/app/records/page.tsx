@@ -15,6 +15,7 @@ import {
   Leaf
 } from 'lucide-react';
 import { api } from '@/lib/api';
+import { MOCK_RECORDS } from '@/lib/mockData';
 
 export default function LandRecordsPage() {
   const [records, setRecords] = useState<any[]>([]);
@@ -30,9 +31,14 @@ export default function LandRecordsPage() {
       if (statusFilter) params.status = statusFilter;
       if (riskFilter) params.risk = riskFilter;
       const data = await api.listRecords(params);
-      setRecords(data);
+      if (Array.isArray(data) && data.length > 0) {
+        setRecords(data);
+      } else {
+        setRecords(MOCK_RECORDS);
+      }
     } catch (err) {
-      console.error('Failed to load records:', err);
+      console.warn('Failed to load live records, displaying demo records:', err);
+      setRecords(MOCK_RECORDS);
     } finally {
       setLoading(false);
     }

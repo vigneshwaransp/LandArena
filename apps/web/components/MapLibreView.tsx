@@ -11,6 +11,7 @@ import {
   Leaf
 } from 'lucide-react';
 import { api } from '@/lib/api';
+import { MOCK_GEOJSON } from '@/lib/mockData';
 
 interface MapLibreViewProps {
   selectedParcelId?: string;
@@ -70,7 +71,15 @@ export default function MapLibreView({
 
     map.on('load', async () => {
       try {
-        const geojson = await api.getParcelsGeoJSON();
+        let geojson: any;
+        try {
+          geojson = await api.getParcelsGeoJSON();
+          if (!geojson || !geojson.features || geojson.features.length === 0) {
+            geojson = MOCK_GEOJSON;
+          }
+        } catch {
+          geojson = MOCK_GEOJSON;
+        }
 
         // Add parcels GeoJSON source
         map.addSource('parcels-source', {

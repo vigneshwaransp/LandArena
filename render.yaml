@@ -33,8 +33,3 @@ services:
           type: web
           name: landarena-api
           property: host
-      - key: NEXT_PUBLIC_API_URL
-        fromService:
-          type: web
-          name: landarena-api
-          property: host
