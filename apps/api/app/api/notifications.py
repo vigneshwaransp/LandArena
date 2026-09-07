@@ -25,6 +25,14 @@ async def send_notification(payload: NotificationSendRequest):
         record_id=payload.record_id
     )
 
+@router.post("/read-all")
+async def mark_all_notifications_read():
+    """
+    Marks all notifications as read.
+    """
+    count = notification_service.mark_all_as_read()
+    return {"status": "success", "marked_read_count": count}
+
 @router.post("/{notification_id}/read")
 async def mark_notification_read(notification_id: str):
     """
@@ -34,3 +42,4 @@ async def mark_notification_read(notification_id: str):
     if not success:
         raise HTTPException(status_code=404, detail="Notification not found")
     return {"status": "success", "id": notification_id}
+

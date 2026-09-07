@@ -88,4 +88,12 @@ class NotificationService:
                 return True
         return False
 
+    def mark_all_as_read(self) -> int:
+        count = 0
+        for n in self._notifications:
+            if not n.get("read", False):
+                n["read"] = True
+                count += 1
+        return count
+
 notification_service = NotificationService()

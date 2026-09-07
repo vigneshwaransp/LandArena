@@ -13,6 +13,16 @@ import {
   Leaf
 } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
+import { api } from '@/lib/api';
+
+interface NotificationItem {
+  id: string;
+  title: string;
+  message: string;
+  time?: string;
+  type?: string;
+  read: boolean;
+}
 
 export default function Navbar() {
   const router = useRouter();
@@ -21,7 +31,7 @@ export default function Navbar() {
   const [showRoleMenu, setShowRoleMenu] = useState(false);
   const [showLangMenu, setShowLangMenu] = useState(false);
   const [showNotifMenu, setShowNotifMenu] = useState(false);
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
 
   // Demo roles
   const roles: { role: string; name: string; title: string }[] = [
@@ -32,13 +42,58 @@ export default function Navbar() {
   ];
 
   useEffect(() => {
-    // Initial notifications
-    setNotifications([
-      { id: '1', title: 'Critical Fraud Flagged', message: 'Future date on Deed 145/2A-CLONE', time: '5m ago', type: 'critical' },
-      { id: '2', title: 'Area Mismatch Warning', message: 'Record 145/2A has 2.45% GIS deviation', time: '12m ago', type: 'warning' },
-      { id: '3', title: 'Digitization Complete', message: 'Patta 210/3C verified successfully', time: '1h ago', type: 'success' },
-    ]);
+    async function loadNotifications() {
+      try {
+        const data = await api.listNotifications();
+        if (Array.isArray(data) && data.length > 0) {
+          setNotifications(
+            data.map((n: any) => ({
+              id: String(n.id),
+              title: n.title,
+              message: n.message,
+              time: n.created_at
+                ? new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                : 'Recent',
+              type: n.channel === 'EMAIL' ? 'critical' : n.channel === 'SMS' ? 'success' : 'warning',
+              read: Boolean(n.read),
+            }))
+          );
+          return;
+        }
+      } catch (err) {
+        // Fallback to default notifications
+      }
+
+      setNotifications([
+        { id: '1', title: 'Critical Fraud Flagged', message: 'Future date on Deed 145/2A-CLONE', time: '5m ago', type: 'critical', read: false },
+        { id: '2', title: 'Area Mismatch Warning', message: 'Record 145/2A has 2.45% GIS deviation', time: '12m ago', type: 'warning', read: false },
+        { id: '3', title: 'Digitization Complete', message: 'Patta 210/3C verified successfully', time: '1h ago', type: 'success', read: false },
+      ]);
+    }
+    loadNotifications();
   }, []);
+
+  const unreadCount = notifications.filter((n) => !n.read).length;
+
+  const handleMarkAllRead = async () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    try {
+      await api.markAllNotificationsRead();
+    } catch (err) {
+      console.warn('Backend notifications update deferred:', err);
+    }
+  };
+
+  const handleNotificationClick = async (id: string) => {
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+    );
+    try {
+      await api.markNotificationRead(id);
+    } catch (err) {
+      console.warn('Backend notification update deferred:', err);
+    }
+  };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -117,31 +172,86 @@ export default function Navbar() {
           <button
             onClick={() => setShowNotifMenu(!showNotifMenu)}
             className="relative p-2 text-[#2D3A31] bg-[#F2F0EB] hover:bg-[#E6E2DA]/80 border border-[#E6E2DA] rounded-full transition-all shadow-sm"
+            aria-label="Notifications"
           >
             <Bell className="w-4 h-4 text-[#2D3A31]" strokeWidth={1.75} />
-            <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[#C27B66] text-white font-bold text-[9px] flex items-center justify-center rounded-full shadow-sm">
-              3
-            </span>
+            {unreadCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 bg-[#C27B66] text-white font-bold text-[9px] flex items-center justify-center rounded-full shadow-sm animate-pulse">
+                {unreadCount}
+              </span>
+            )}
           </button>
 
           {showNotifMenu && (
-            <div className="absolute right-0 mt-2 w-80 bg-white border border-[#E6E2DA] rounded-2xl shadow-[0_10px_30px_rgba(45,58,49,0.08)] p-4 z-50 animate-in fade-in zoom-in-95 duration-150">
+            <div className="absolute right-0 mt-2 w-84 bg-white border border-[#E6E2DA] rounded-2xl shadow-[0_10px_30px_rgba(45,58,49,0.08)] p-4 z-50 animate-in fade-in zoom-in-95 duration-150">
               <div className="flex items-center justify-between pb-2.5 border-b border-[#E6E2DA]">
-                <span className="text-xs font-serif font-bold text-[#2D3A31]">Notifications & Alerts</span>
-                <span className="text-[10px] text-[#C27B66] font-semibold cursor-pointer hover:underline">Mark all read</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-serif font-bold text-[#2D3A31]">Notifications & Alerts</span>
+                  {unreadCount > 0 ? (
+                    <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[#C27B66]/15 text-[#C27B66] font-mono font-bold">
+                      {unreadCount} new
+                    </span>
+                  ) : (
+                    <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[#8C9A84]/15 text-[#4F6C57] font-mono font-medium">
+                      All caught up
+                    </span>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={handleMarkAllRead}
+                  disabled={unreadCount === 0}
+                  className={`text-[10px] font-semibold transition-colors ${
+                    unreadCount > 0
+                      ? 'text-[#C27B66] hover:underline cursor-pointer'
+                      : 'text-[#8C9A84] opacity-50 cursor-default'
+                  }`}
+                >
+                  {unreadCount > 0 ? 'Mark all read' : 'All read ✓'}
+                </button>
               </div>
               <div className="divide-y divide-[#E6E2DA]/60 max-h-64 overflow-y-auto mt-1">
-                {notifications.map((n) => (
-                  <div key={n.id} className="py-2.5 hover:bg-[#F9F8F4] px-1.5 rounded-xl transition-all">
-                    <div className="flex items-center justify-between">
-                      <span className={`text-[11px] font-semibold ${n.type === 'critical' ? 'text-[#C27B66]' : n.type === 'warning' ? 'text-[#8C9A84]' : 'text-[#4F6C57]'}`}>
-                        {n.title}
-                      </span>
-                      <span className="text-[9px] text-[#8C9A84] font-mono">{n.time}</span>
+                {notifications.length === 0 ? (
+                  <div className="py-6 text-center text-xs text-[#8C9A84]">No notifications</div>
+                ) : (
+                  notifications.map((n) => (
+                    <div
+                      key={n.id}
+                      onClick={() => handleNotificationClick(n.id)}
+                      className={`py-2.5 px-2 rounded-xl transition-all cursor-pointer ${
+                        n.read
+                          ? 'hover:bg-[#F9F8F4] opacity-65'
+                          : 'bg-[#F2F0EB]/50 hover:bg-[#F2F0EB] font-medium'
+                      }`}
+                      title={n.read ? 'Already read' : 'Click to mark as read'}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          {!n.read && (
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#C27B66] shrink-0" />
+                          )}
+                          <span
+                            className={`text-[11px] ${
+                              n.read ? 'font-normal text-[#2D3A31]/80' : 'font-bold'
+                            } ${
+                              n.type === 'critical'
+                                ? 'text-[#C27B66]'
+                                : n.type === 'warning'
+                                ? 'text-[#8C9A84]'
+                                : 'text-[#4F6C57]'
+                            }`}
+                          >
+                            {n.title}
+                          </span>
+                        </div>
+                        <span className="text-[9px] text-[#8C9A84] font-mono shrink-0 ml-2">
+                          {n.time}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-[#2D3A31]/80 mt-1 pl-3">{n.message}</p>
                     </div>
-                    <p className="text-[11px] text-[#2D3A31]/80 mt-0.5">{n.message}</p>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
           )}

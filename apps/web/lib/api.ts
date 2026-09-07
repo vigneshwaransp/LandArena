@@ -243,6 +243,18 @@ class ApiClient {
     return this.request<any[]>('/notifications');
   }
 
+  async markNotificationRead(id: string) {
+    return this.request<any>(`/notifications/${encodeURIComponent(id)}/read`, {
+      method: 'POST',
+    });
+  }
+
+  async markAllNotificationsRead() {
+    return this.request<any>('/notifications/read-all', {
+      method: 'POST',
+    });
+  }
+
   async sendNotification(payload: { channel: string; recipient: string; title: string; message: string; record_id?: string }) {
     return this.request<any>('/notifications/send', {
       method: 'POST',

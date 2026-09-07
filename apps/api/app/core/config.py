@@ -48,6 +48,8 @@ class Settings(BaseSettings):
     # OCR & AI Providers
     OCR_PROVIDER: str = os.getenv("OCR_PROVIDER", "hybrid")  # hybrid | tesseract | mock
     AI_PROVIDER: str = os.getenv("AI_PROVIDER", "rule_ml")
+    MISTRAL_API_KEY: Optional[str] = os.getenv("MISTRAL_API_KEY", os.getenv("AI_API_KEY", None))
+    MISTRAL_MODEL: str = os.getenv("MISTRAL_MODEL", "codestral-latest")
     SUPPORTED_LANGUAGES: List[str] = ["en", "ta", "hi"]
     
     # Validation Thresholds
