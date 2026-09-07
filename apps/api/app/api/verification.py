@@ -9,6 +9,8 @@ from app.core.security import get_current_user_payload
 from app.models.models import VerificationTask, LandRecord
 from app.schemas.schemas import VerificationTaskResponse, ApproveRequest, RejectRequest, FieldEditRequest, LandRecordResponse
 from app.services.verification_service import verification_service
+from app.services.notification_service import notification_service
+from app.services.feedback_learning_service import feedback_learning_service
 
 router = APIRouter(prefix="/verification", tags=["Human-in-the-Loop Verification"])
 
@@ -40,6 +42,14 @@ async def approve_record(
             user_payload=current_user,
             notes=req.notes
         )
+        # Dispatch SMS and Email alert to landowner / citizen
+        notification_service.send_notification(
+            channel="SMS",
+            recipient="+91 98765 43210",
+            title="Land Record Verification Approved",
+            message=f"Your land record {record.record_id} has been verified and approved by Tahsildar. Status: VERIFIED.",
+            record_id=record.record_id
+        )
         return {"message": "Record successfully verified and approved", "record_id": record.record_id, "status": record.status}
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
@@ -58,6 +68,14 @@ async def reject_record(
             user_payload=current_user,
             reason=req.reason,
             notes=req.notes
+        )
+        # Dispatch SMS / Email alert on rejection
+        notification_service.send_notification(
+            channel="SMS",
+            recipient="+91 98765 43210",
+            title="Land Record Application Flagged",
+            message=f"Notice for record {record.record_id}: Application marked as rejected. Reason: {req.reason}.",
+            record_id=record.record_id
         )
         return {"message": "Record marked as rejected", "record_id": record.record_id, "status": record.status}
     except ValueError as e:
@@ -79,6 +97,14 @@ async def edit_field(
             new_value=req.new_value,
             reason=req.reason
         )
+        # Log to AI feedback learning loop
+        feedback_learning_service.log_correction(
+            field_name=req.field_name,
+            original_val=req.reason or "OCR_EXTRACTED",
+            corrected_val=req.new_value,
+            user_id=current_user.get("sub", "officer")
+        )
         return {"message": f"Field '{req.field_name}' successfully updated", "version": record.version}
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
+

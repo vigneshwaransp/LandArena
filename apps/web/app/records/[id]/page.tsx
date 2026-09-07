@@ -272,32 +272,39 @@ export default function RecordDetailPage() {
               <Building2 className="w-4 h-4 text-[#8C9A84]" />
               <span>Cadastral Property Details</span>
             </div>
-            <div className="space-y-2.5 text-xs">
+            <div className="space-y-2 text-xs">
               <div className="flex justify-between">
-                <span className="text-[#8C9A84] text-[11px]">Survey Number:</span>
-                <span className="font-mono font-bold text-[#2D3A31]">{record.property?.survey_number}</span>
+                <span className="text-[#8C9A84] text-[11px]">Survey / Khasra No:</span>
+                <span className="font-mono font-bold text-[#2D3A31]">{record.property?.khasra_number || record.property?.survey_number}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-[#8C9A84] text-[11px]">Subdivision:</span>
-                <span className="font-mono font-semibold text-[#2D3A31]">{record.property?.subdivision_number || '1'}</span>
+                <span className="text-[#8C9A84] text-[11px]">Khata / Patta No:</span>
+                <span className="font-mono font-semibold text-[#2D3A31]">{record.property?.khata_number || record.property?.patta_number || 'P-88421'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#8C9A84] text-[11px]">Subdivision / Plot:</span>
+                <span className="font-mono text-[#2D3A31]">{record.property?.subdivision_number || '1'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-[#8C9A84] text-[11px]">Stated Extent / Area:</span>
                 <span className="font-mono font-bold text-[#2D3A31]">{record.property?.area} {record.property?.area_unit}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-[#8C9A84] text-[11px]">Patta Number:</span>
-                <span className="font-mono text-[#2D3A31]">{record.property?.patta_number || 'P-88421'}</span>
+                <span className="text-[#8C9A84] text-[11px]">Land Classification:</span>
+                <span className="text-[#2D3A31] font-medium">{record.property?.land_classification || record.property?.land_type || 'Agricultural / Punja'}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-[#8C9A84] text-[11px]">Deed Reg. Date:</span>
+                <span className="text-[#8C9A84] text-[11px]">Mutation Status:</span>
+                <span className="font-semibold text-[#4F6C57] bg-[#8C9A84]/15 px-2 py-0.5 rounded-full text-[10px]">
+                  {record.property?.mutation_status || (record.status === 'VERIFIED' ? 'APPROVED' : 'PENDING')}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#8C9A84] text-[11px]">Registration Date:</span>
                 <span className="font-mono text-[#2D3A31]">{record.property?.registration_date || 'N/A'}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-[#8C9A84] text-[11px]">Classification:</span>
-                <span className="text-[#2D3A31]">{record.property?.land_type || 'Agricultural / Punja'}</span>
-              </div>
             </div>
+
           </div>
 
           {/* Location & Score Card */}

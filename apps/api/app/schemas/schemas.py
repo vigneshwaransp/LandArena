@@ -90,6 +90,10 @@ class OwnerSchema(BaseModel):
 
 class PropertySchema(BaseModel):
     survey_number: str
+    khasra_number: Optional[str] = None
+    khata_number: Optional[str] = None
+    khewat_number: Optional[str] = None
+    plot_number: Optional[str] = None
     subdivision_number: Optional[str] = "1"
     patta_number: Optional[str] = None
     document_number: Optional[str] = None
@@ -99,14 +103,20 @@ class PropertySchema(BaseModel):
     area_unit: str = "acre"
     area_sq_meters: Optional[float] = None
     land_type: str = "Agricultural / Ryotwari"
+    land_classification: Optional[str] = "Agricultural / Ryotwari Punja"
+    mutation_status: Optional[str] = "APPROVED"
+    mutation_date: Optional[str] = None
+    mutation_order_number: Optional[str] = None
     boundaries: Optional[BoundariesSchema] = None
 
 class LocationSchema(BaseModel):
     village: str
     taluk: str
+    tehsil: Optional[str] = None
     district: str
     state: str = "Tamil Nadu"
     pincode: Optional[str] = None
+
 
 class ValidationRuleResultSchema(BaseModel):
     rule: str
@@ -283,3 +293,61 @@ class NotificationResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class NotificationSendRequest(BaseModel):
+    channel: str = "SMS" # SMS, EMAIL, PUSH, ALL
+    recipient: str
+    title: str
+    message: str
+    record_id: Optional[str] = None
+
+# --- DILRMP & National LRMS Schemas ---
+class StateProgressSchema(BaseModel):
+    state_name: str
+    total_villages: int
+    digitized_villages_pct: float
+    cadastral_maps_digitized_pct: float
+    mutation_computerized_pct: float
+    overall_dilrmp_score: float
+    districts_count: int
+    top_districts: List[Dict[str, Any]] = []
+
+class DILRMPStatusResponse(BaseModel):
+    program_name: str = "Digital India Land Records Modernization Programme (DILRMP)"
+    nodal_ministry: str = "Department of Land Resources, Ministry of Rural Development"
+    national_digitization_pct: float
+    cadastral_maps_georeferenced_pct: float
+    roor_mutation_integration_pct: float
+    sro_revenue_integration_pct: float
+    state_rankings: List[StateProgressSchema] = []
+    compliance_summary: Dict[str, Any] = {}
+
+class DILRMPRecordVerifyResponse(BaseModel):
+    query_identifier: str
+    matched: bool
+    lrms_source: str # e.g. "TamilNilam / Bhulekh Central Gateway"
+    state: str
+    district: str
+    tehsil_taluk: str
+    village: str
+    khasra_survey_number: str
+    khata_number: Optional[str] = None
+    registered_owner: str
+    area_acres: float
+    land_classification: str
+    mutation_status: str
+    encumbrance_status: str
+    last_verified_at: str
+
+class DILRMPSyncRequest(BaseModel):
+    record_ids: List[str]
+    target_lrms_gateway: Optional[str] = "DILRMP_NATIONAL_GATEWAY"
+
+class FeedbackLearningStatsResponse(BaseModel):
+    total_corrections: int
+    model_baseline_accuracy: float
+    improved_accuracy: float
+    top_corrected_fields: List[Dict[str, Any]]
+    active_learning_iterations: int
+    last_updated: str
+

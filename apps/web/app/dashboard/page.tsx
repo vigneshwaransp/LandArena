@@ -19,17 +19,31 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell
 } from 'recharts';
+import { 
+  Building, 
+  Globe, 
+  ChevronRight, 
+  Check, 
+  Layers, 
+  Compass 
+} from 'lucide-react';
 import { api } from '@/lib/api';
 
 export default function DashboardPage() {
   const [stats, setStats] = useState<any>(null);
+  const [dilrmp, setDilrmp] = useState<any>(null);
+  const [selectedState, setSelectedState] = useState<string>('Tamil Nadu');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadStats() {
       try {
-        const data = await api.getDashboardStats();
-        setStats(data);
+        const [statsData, dilrmpData] = await Promise.all([
+          api.getDashboardStats(),
+          api.getDILRMPStatus().catch(() => null)
+        ]);
+        setStats(statsData);
+        setDilrmp(dilrmpData);
       } catch (err) {
         console.error('Failed to load dashboard stats:', err);
       } finally {
@@ -38,6 +52,7 @@ export default function DashboardPage() {
     }
     loadStats();
   }, []);
+
 
   if (loading) {
     return (
@@ -287,6 +302,173 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* State-wise and District-wise Digitization Progress (DILRMP) */}
+      <div className="bg-white rounded-3xl p-6 md:p-8 border border-[#E6E2DA] shadow-[0_10px_30px_rgba(45,58,49,0.06)] space-y-6">
+
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[#E6E2DA]">
+          <div>
+            <div className="flex items-center gap-2.5">
+              <Globe className="w-4 h-4 text-[#8C9A84]" />
+              <h2 className="text-base font-serif font-bold text-[#2D3A31]">
+                State-wise &amp; District-wise Digitization Progress (DILRMP)
+              </h2>
+            </div>
+            <p className="text-xs text-[#8C9A84] mt-0.5">
+              National land records modernization compliance monitoring across states and districts.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3 text-xs font-mono">
+            <span className="px-3 py-1 bg-[#8C9A84]/15 text-[#2D3A31] rounded-full font-semibold border border-[#8C9A84]/30">
+              National Score: 95.2%
+            </span>
+          </div>
+        </div>
+
+        {/* National Core Components Mini-KPIs */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="p-4 bg-[#F9F8F4] rounded-2xl border border-[#E6E2DA]">
+            <span className="text-[10px] uppercase font-serif text-[#8C9A84] font-semibold block">RoR Computerization</span>
+            <div className="text-xl font-serif font-bold text-[#2D3A31] mt-1">{dilrmp?.national_digitization_pct || 95.2}%</div>
+            <span className="text-[10px] text-[#8C9A84]">18.4 Cr Land Parcels</span>
+          </div>
+          <div className="p-4 bg-[#F9F8F4] rounded-2xl border border-[#E6E2DA]">
+            <span className="text-[10px] uppercase font-serif text-[#8C9A84] font-semibold block">Cadastral Maps Georeferenced</span>
+            <div className="text-xl font-serif font-bold text-[#2D3A31] mt-1">{dilrmp?.cadastral_maps_georeferenced_pct || 89.6}%</div>
+            <span className="text-[10px] text-[#8C9A84]">24.6 Lakh FMB Maps</span>
+          </div>
+          <div className="p-4 bg-[#F9F8F4] rounded-2xl border border-[#E6E2DA]">
+            <span className="text-[10px] uppercase font-serif text-[#8C9A84] font-semibold block">Mutation Integration</span>
+            <div className="text-xl font-serif font-bold text-[#2D3A31] mt-1">{dilrmp?.roor_mutation_integration_pct || 93.4}%</div>
+            <span className="text-[10px] text-[#8C9A84]">Auto-mutation synced</span>
+          </div>
+          <div className="p-4 bg-[#F9F8F4] rounded-2xl border border-[#E6E2DA]">
+            <span className="text-[10px] uppercase font-serif text-[#8C9A84] font-semibold block">SRO Office Integration</span>
+            <div className="text-xl font-serif font-bold text-[#2D3A31] mt-1">{dilrmp?.sro_revenue_integration_pct || 91.7}%</div>
+            <span className="text-[10px] text-[#8C9A84]">5,182 of 5,329 SROs</span>
+          </div>
+        </div>
+
+        {/* State Selector Tabs */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1">
+          {(dilrmp?.state_rankings || [
+            { state_name: 'Tamil Nadu' },
+            { state_name: 'Karnataka' },
+            { state_name: 'Maharashtra' },
+            { state_name: 'Gujarat' },
+            { state_name: 'Uttar Pradesh' },
+            { state_name: 'Madhya Pradesh' }
+          ]).map((st: any) => (
+            <button
+              key={st.state_name}
+              onClick={() => setSelectedState(st.state_name)}
+              className={`px-4 py-1.5 rounded-full text-xs font-serif font-medium whitespace-nowrap transition-all ${
+                selectedState === st.state_name
+                  ? 'bg-[#2D3A31] text-[#F9F8F4] shadow-sm font-semibold'
+                  : 'bg-[#F2F0EB] text-[#2D3A31] hover:bg-[#E6E2DA]'
+              }`}
+            >
+              {st.state_name}
+            </button>
+          ))}
+        </div>
+
+        {/* Selected State & District Drill-Down */}
+        {(() => {
+          const stateObj = (dilrmp?.state_rankings || []).find((s: any) => s.state_name === selectedState) || (dilrmp?.state_rankings || [])[0];
+          if (!stateObj) return null;
+
+          return (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              {/* Left: State Score Overview */}
+              <div className="lg:col-span-4 bg-[#F9F8F4] p-5 rounded-2xl border border-[#E6E2DA] space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="font-serif font-bold text-sm text-[#2D3A31]">{stateObj.state_name}</span>
+                  <span className="text-xs font-mono font-bold text-[#4F6C57] bg-[#8C9A84]/15 px-2.5 py-0.5 rounded-full">
+                    {stateObj.overall_dilrmp_score}% Score
+                  </span>
+                </div>
+
+                <div className="space-y-3 text-xs">
+                  <div>
+                    <div className="flex justify-between text-[11px] mb-1">
+                      <span className="text-[#8C9A84]">Villages Digitized:</span>
+                      <span className="font-mono font-semibold text-[#2D3A31]">{stateObj.digitized_villages_pct}%</span>
+                    </div>
+                    <div className="w-full bg-[#E6E2DA] h-1.5 rounded-full overflow-hidden">
+                      <div className="bg-[#8C9A84] h-full" style={{ width: `${stateObj.digitized_villages_pct}%` }} />
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between text-[11px] mb-1">
+                      <span className="text-[#8C9A84]">Cadastral Maps Digitized:</span>
+                      <span className="font-mono font-semibold text-[#2D3A31]">{stateObj.cadastral_maps_digitized_pct}%</span>
+                    </div>
+                    <div className="w-full bg-[#E6E2DA] h-1.5 rounded-full overflow-hidden">
+                      <div className="bg-[#2D3A31] h-full" style={{ width: `${stateObj.cadastral_maps_digitized_pct}%` }} />
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between text-[11px] mb-1">
+                      <span className="text-[#8C9A84]">Mutation Computerized:</span>
+                      <span className="font-mono font-semibold text-[#2D3A31]">{stateObj.mutation_computerized_pct}%</span>
+                    </div>
+                    <div className="w-full bg-[#E6E2DA] h-1.5 rounded-full overflow-hidden">
+                      <div className="bg-[#8C9A84] h-full" style={{ width: `${stateObj.mutation_computerized_pct}%` }} />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-[#E6E2DA] text-[10px] text-[#8C9A84]">
+                  Total Villages: <b className="text-[#2D3A31]">{stateObj.total_villages?.toLocaleString()}</b> • Districts: <b className="text-[#2D3A31]">{stateObj.districts_count}</b>
+                </div>
+              </div>
+
+              {/* Right: District Breakdown Table */}
+              <div className="lg:col-span-8 overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-[#E6E2DA] text-[#8C9A84] font-serif uppercase tracking-wider text-[10px]">
+                      <th className="py-2.5 px-3">District Name</th>
+                      <th className="py-2.5 px-3">Digitized Parcels</th>
+                      <th className="py-2.5 px-3">Progress</th>
+                      <th className="py-2.5 px-3 text-right">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#E6E2DA]/60">
+                    {(stateObj.top_districts || []).map((d: any) => (
+                      <tr key={d.district} className="hover:bg-[#F9F8F4]">
+                        <td className="py-3 px-3 font-medium text-[#2D3A31]">{d.district}</td>
+                        <td className="py-3 px-3 font-mono text-[#8C9A84]">{d.digitized_parcels?.toLocaleString()}</td>
+                        <td className="py-3 px-3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-24 bg-[#F2F0EB] h-1.5 rounded-full overflow-hidden">
+                              <div className="bg-[#8C9A84] h-full" style={{ width: `${d.progress_pct}%` }} />
+                            </div>
+                            <span className="font-mono text-[11px] font-semibold text-[#2D3A31]">{d.progress_pct}%</span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-3 text-right">
+                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${
+                            d.status === 'COMPLETED'
+                              ? 'bg-[#8C9A84]/15 text-[#4F6C57]'
+                              : 'bg-[#DCCFC2]/40 text-[#8C4634]'
+                          }`}>
+                            {d.status === 'COMPLETED' ? 'COMPLETED' : 'IN PROGRESS'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          );
+        })()}
+      </div>
+
       {/* Recent Audit Ledger */}
       <div className="bg-white rounded-3xl border border-[#E6E2DA] shadow-[0_10px_30px_rgba(45,58,49,0.06)] overflow-hidden">
         <div className="px-6 py-4.5 border-b border-[#E6E2DA] flex items-center justify-between">
@@ -296,6 +478,7 @@ export default function DashboardPage() {
               Recent Cadastral Audit Ledger Events
             </h3>
           </div>
+
           <Link href="/audit-logs" className="text-xs text-[#2D3A31] font-semibold hover:text-[#8C9A84] transition-colors flex items-center gap-1 font-serif">
             <span>View Full Audit Trail</span>
             <ArrowUpRight className="w-3.5 h-3.5 text-[#8C9A84]" />

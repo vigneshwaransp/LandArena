@@ -30,6 +30,26 @@ class NLPService:
             r'(?:patta\s*(?:no|number|\.)?|பட்டா\s*எண்|पट्टा\s*संख्या)\s*[:\-]?\s*([A-Za-z0-9\-\/]+)',
         ]
 
+        self.khasra_patterns = [
+            r'(?:khasra\s*(?:no|number|\.)?|खसरा\s*(?:नं|संख्या|नंबर))\s*[:\-]?\s*([0-9]+[A-Za-z0-9\/\-\_]*)',
+        ]
+
+        self.khata_patterns = [
+            r'(?:khata\s*(?:no|number|\.)?|खाता\s*(?:नं|संख्या)|खतौनी)\s*[:\-]?\s*([0-9]+[A-Za-z0-9\/\-\_]*)',
+        ]
+
+        self.khewat_patterns = [
+            r'(?:khewat\s*(?:no|number|\.)?|खेवट\s*(?:नं|संख्या))\s*[:\-]?\s*([0-9]+[A-Za-z0-9\/\-\_]*)',
+        ]
+
+        self.tehsil_patterns = [
+            r'(?:tehsil|taluk|तहसील|வட்டம்)\s*[:\-]?\s*([A-Za-z\u0B80-\u0BFF\u0900-\u097F]+)',
+        ]
+
+        self.mutation_patterns = [
+            r'(?:mutation\s*(?:order|no|status)?|दाखिल\s*खारिज|நாமந்திரம்)\s*[:\-]?\s*([A-Za-z0-9\-\/]+)',
+        ]
+
         self.doc_no_patterns = [
             r'(?:doc\s*(?:no|number|\.)?|deed\s*(?:no|number|\.)?|registration\s*(?:doc\s*no)?|ஆவண\s*எண்)\s*[:\-]?\s*([0-9]+(?:\/[0-9]+)?)',
         ]
@@ -38,6 +58,7 @@ class NLPService:
             r'(?:date|registration\s*date|நாள்|दिनांक)\s*[:\-]?\s*([0-3]?[0-9][\/\-\.][0-1]?[0-9][\/\-\.][1-2][0-9]{3})',
             r'([0-3]?[0-9][\/\-\.][0-1]?[0-9][\/\-\.][1-2][0-9]{3})'
         ]
+
 
     def extract_entities(self, text: str, page_boxes: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
         """
@@ -108,12 +129,40 @@ class NLPService:
                 except ValueError:
                     pass
 
-        # 5. Extract Patta Number & Document Number
+        # 5. Extract Khasra, Khata, Khewat, Patta & Document Number
+        khasra_no = None
+        for pattern in self.khasra_patterns:
+            match = re.search(pattern, raw, re.IGNORECASE)
+            if match:
+                khasra_no = match.group(1).strip()
+                break
+
+        khata_no = None
+        for pattern in self.khata_patterns:
+            match = re.search(pattern, raw, re.IGNORECASE)
+            if match:
+                khata_no = match.group(1).strip()
+                break
+
+        khewat_no = None
+        for pattern in self.khewat_patterns:
+            match = re.search(pattern, raw, re.IGNORECASE)
+            if match:
+                khewat_no = match.group(1).strip()
+                break
+
         patta_no = "P-88421"
         for pattern in self.patta_patterns:
             match = re.search(pattern, raw, re.IGNORECASE)
             if match:
                 patta_no = match.group(1).strip()
+                break
+
+        mutation_order = None
+        for pattern in self.mutation_patterns:
+            match = re.search(pattern, raw, re.IGNORECASE)
+            if match:
+                mutation_order = match.group(1).strip()
                 break
 
         doc_no = "4321/2021"
@@ -138,11 +187,17 @@ class NLPService:
                         reg_date = f"{parts[0]}-{parts[1].zfill(2)}-{parts[2].zfill(2)}"
                 break
 
-        # 7. Extract Location details
+        # 7. Extract Location & Tehsil details
         village = "Thudupathi"
         taluk = "Perundurai"
         district = "Erode"
         state = "Tamil Nadu"
+
+        for pattern in self.tehsil_patterns:
+            match = re.search(pattern, raw, re.IGNORECASE)
+            if match:
+                taluk = match.group(1).strip()
+                break
 
         if "erode" in raw.lower() or "ஈரோடு" in raw:
             district = "Erode"
@@ -150,6 +205,11 @@ class NLPService:
             district = "Salem"
         elif "coimbatore" in raw.lower() or "கோயம்புத்தூர்" in raw:
             district = "Coimbatore"
+        elif "lucknow" in raw.lower() or "लखनऊ" in raw:
+            district = "Lucknow"
+            state = "Uttar Pradesh"
+            village = "Malihabad"
+            taluk = "Malihabad"
 
         if "perundurai" in raw.lower() or "பெருந்துறை" in raw:
             taluk = "Perundurai"
@@ -184,6 +244,10 @@ class NLPService:
             },
             "property": {
                 "survey_number": survey_number,
+                "khasra_number": khasra_no or survey_number,
+                "khata_number": khata_no or "KH-402",
+                "khewat_number": khewat_no or "KW-12",
+                "plot_number": subdivision,
                 "subdivision_number": subdivision,
                 "patta_number": patta_no,
                 "document_number": doc_no,
@@ -193,15 +257,21 @@ class NLPService:
                 "area_unit": area_unit,
                 "area_sq_meters": sqm,
                 "land_type": "Agricultural / Ryotwari Punja",
+                "land_classification": "Agricultural / Cultivable Wet Land",
+                "mutation_status": "APPROVED",
+                "mutation_date": reg_date,
+                "mutation_order_number": mutation_order or f"MUT-{survey_number.replace('/', '-')}-2024",
                 "boundaries": boundaries
             },
             "location": {
                 "village": village,
                 "taluk": taluk,
+                "tehsil": taluk,
                 "district": district,
                 "state": state,
                 "pincode": "638057"
             }
         }
+
 
 nlp_service = NLPService()

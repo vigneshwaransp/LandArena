@@ -192,7 +192,41 @@ class ApiClient {
       method: 'POST',
     });
   }
+
+  // DILRMP & National LRMS Integration
+  async getDILRMPStatus() {
+    return this.request<any>('/dilrmp/status');
+  }
+
+  async verifyDILRMPRecord(identifier: string) {
+    return this.request<any>(`/dilrmp/verify/${encodeURIComponent(identifier)}`);
+  }
+
+  async syncDILRMP(recordIds: string[]) {
+    return this.request<any>('/dilrmp/sync', {
+      method: 'POST',
+      body: JSON.stringify({ record_ids: recordIds }),
+    });
+  }
+
+  // Notifications
+  async listNotifications() {
+    return this.request<any[]>('/notifications');
+  }
+
+  async sendNotification(payload: { channel: string; recipient: string; title: string; message: string; record_id?: string }) {
+    return this.request<any>('/notifications/send', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  // AI-Driven Learning
+  async getLearningStats() {
+    return this.request<any>('/learning/stats');
+  }
 }
 
 export const api = new ApiClient();
+
 

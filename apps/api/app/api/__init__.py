@@ -12,6 +12,9 @@ from app.api.audit_logs import router as audit_logs_router
 from app.api.assistant import router as assistant_router
 from app.api.stream import router as stream_router
 from app.api.ml import router as ml_router
+from app.api.dilrmp import router as dilrmp_router
+from app.api.notifications import router as notifications_router
+from app.api.learning import router as learning_router
 
 api_router = APIRouter()
 api_router.include_router(auth_router)
@@ -27,4 +30,8 @@ api_router.include_router(audit_logs_router)
 api_router.include_router(assistant_router)
 api_router.include_router(stream_router)
 api_router.include_router(ml_router, prefix="/ml", tags=["Machine Learning"])
+api_router.include_router(dilrmp_router)
+api_router.include_router(notifications_router)
+api_router.include_router(learning_router)
+
 

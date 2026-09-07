@@ -1,139 +1,151 @@
 # Intelligent Land Record Digitization and Validation System
-### Advanced Full-Stack MVP — Smart India Hackathon (SIH 2026)
+### Advanced AI, Computer Vision, GIS & DILRMP Modernization Platform — SIH 2026
 
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![Next.js](https://img.shields.io/badge/Next.js-14.2+-black.svg?logo=next.js&logoColor=white)](https://nextjs.org)
 [![PostGIS](https://img.shields.io/badge/PostGIS-Spatial%20GIS-336791.svg?logo=postgresql&logoColor=white)](https://postgis.net)
+[![Scikit-Learn](https://img.shields.io/badge/Scikit--Learn-ML%20Ensemble-F7931E.svg?logo=scikit-learn&logoColor=white)](https://scikit-learn.org)
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg?logo=python&logoColor=white)](https://python.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7+-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-3.4+-38B2AC.svg?logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
+[![Vercel Ready](https://img.shields.io/badge/Vercel-Deployed-black.svg?logo=vercel&logoColor=white)](https://vercel.com)
 
 ---
 
-## 1. Executive Summary & Problem Statement
+## 1. Executive Summary & Problem Scope
 
-Traditional land records in India (such as **Pattas, Chitta, Registered Sale Deeds, Field Measurement Books (FMB), Village Maps, and Tax Kist Receipts**) frequently suffer from:
-* Low scan resolution, ink fading, physical paper decay, and skew.
-* Multilingual text in regional scripts (Tamil தமிழ், Hindi हिन्दी, English).
-* Inconsistent person spelling (e.g. `R. Kumar` vs `Ravi Kumar` vs `ரவிகுமார்`).
-* Conflicting area measurements between paper deeds and actual spatial cadastral parcel geometries.
-* Duplicate titles and fraudulent title amendments claiming overlapping boundaries.
+Land records form the backbone of land administration, property ownership, taxation, land acquisition, dispute resolution, and infrastructure planning across India. A significant portion of historical land records continues to exist as **handwritten registers, scanned documents, maps, cadastral records, and legacy PDF files** maintained at various administrative tiers (Tehsil, Taluk, District, and State Revenue departments).
 
-The **Intelligent Land Record Digitization and Validation System** is an enterprise-grade AI, OCR, and Cadastral GIS platform designed to transform legacy paper records into **structured, searchable, PostGIS-validated, and tamper-evident digital titles** with explainable fraud risk scoring and human-in-the-loop verification.
+These legacy paper records suffer from:
+* **Poor scan quality, ink fading, physical page decay, and skew**.
+* **Multilingual text across Indian languages** (English, தமிழ் / Tamil, हिन्दी / Hindi).
+* **Spelling inconsistencies & transliteration mismatches** (e.g. `R. Kumar` vs `Ravi Kumar` vs `ரவிகுமார்`).
+* **Area variances** between stated deed text and actual ground-truth GIS parcel polygons.
+* **Fraudulent title duplication, Benami proxy transactions, and boundary encroachment**.
+
+The **Intelligent Land Record Digitization and Validation System** is an AI-powered enterprise platform designed to automate the digitization, multilingual extraction, cadastral validation, and fraud risk detection of legacy land records while integrating directly with **Digital India Land Records Modernization Programme (DILRMP)** and state Land Records Management Systems (LRMS).
 
 ---
 
-## 2. System Architecture
+## 2. Full-Stack System Architecture
 
 ```mermaid
 graph TD
-    User([Revenue Officer / Verifier]) --> Web[Next.js App Router / MapLibre GL / Recharts]
-    Web --> API[FastAPI Gateway]
+    User([Revenue Officer / Tahsildar / Surveyor / Citizen]) --> Web[Next.js 14 App Router / React / MapLibre GL / Recharts]
+    Web --> API[FastAPI Gateway :8000]
 
-    subgraph Core Intelligent Engines
-        API --> Auth[JWT Security & RBAC]
+    subgraph Core AI & Vision Engines
+        API --> Auth[JWT Security & RBAC: Officer, Surveyor, Citizen]
         API --> DocPipe[Async Document Processing Pipeline]
-        API --> OCR[Multilingual OCR Engine: EN / TA / HI]
-        API --> NLP[NLP & Entity Extractor]
-        API --> Norm[Phonetic Name Normalization & Soundex]
-        API --> ValEng[Explainable Validation Engine]
-        API --> AnomDet[Fraud Risk & Anomaly Detector]
-        API --> GISEng[PostGIS & Shapely Cadastral Engine]
+        API --> OCR[Multilingual OCR Engine: English / Tamil / Hindi]
+        API --> NLP[NLP & Entity Extractor: Khasra, Khata, Owner, Area]
+        API --> Norm[Unicode NFKC & Soundex Phonetic Matcher]
+        API --> ValEng[7-Rule Explainable Cadastral Validation Engine]
+        API --> MLEng[Random Forest ML Fraud Detection Engine]
+        API --> GISEng[PostGIS & Shapely Cadastral GIS Engine]
+        API --> DILRMP[DILRMP & National LRMS Interoperability Service]
+        API --> Notif[Multi-Channel Notification Gateway: SMS / Email / Push]
+        API --> Learn[AI-Driven Active Learning & Correction Loop]
         API --> AIAssist[Context-Grounded RAG Assistant]
-        API --> AuditEng[Append-Only Audit Ledger & Versioning]
+        API --> AuditEng[Append-Only Immutable Audit Ledger]
     end
 
     subgraph Storage & Infrastructure
         ValEng --> DB[(PostgreSQL + PostGIS / SQLite Fallback)]
         GISEng --> DB
         AuditEng --> DB
-        DocPipe --> MinIO[(MinIO / S3 Object Storage)]
-        API --> Queue[(Redis Async Processing Queue)]
+        MLEng --> MLArtifacts[(Joblib Model & Benchmark Dataset)]
+        DocPipe --> Storage[(MinIO / S3 Object Storage)]
         API --> SSE[Server-Sent Events Real-Time Stream]
     end
 ```
 
 ---
 
-## 3. Key Differentiators & Features
+## 3. Key Differentiators & Features (Aligned with Problem Statement)
 
-1. **Multilingual OCR & Document Studio**:
-   - High-resolution (300 DPI) PyMuPDF conversion with OpenCV CLAHE contrast enhancement and automatic deskew rotation.
-   - Character recognition and bounding box extraction for **English, Tamil (தமிழ்), and Hindi (हिन्दी)**.
-   - Interactive studio with side-by-side zoom/pan canvas, bounding box overlays, and bidirectional field-to-canvas highlighting.
+### 1. Multilingual Document Processing & Predefined Fields
+* Automatically extracts and classifies structured attributes into predefined Indian land registry schemas:
+  * **Landowner Particulars**: Name, normalized name, father/husband name, Aadhaar (masked), PAN (masked), postal address, share %.
+  * **Cadastral Identifiers**: Survey number, **Khasra number** (खसरा), **Khata number** (खाता / खतौनी), **Khewat number** (खेवट), Subdivision number, **Plot number**, Patta passbook number.
+  * **Administrative Hierarchy**: Village, **Tehsil / Taluk** (तहसील / வட்டம்), District, State, Pincode.
+  * **Land Classification**: Agricultural, Non-Agricultural, Ryotwari Punja, Nanja (Wet Land), Residential, Commercial.
+  * **Mutation Records**: Mutation status (Approved / Pending / Disputed), Mutation date, Mutation statutory order number.
+  * **Registration Details**: Deed registration date, document number, stamp duty paid vs circle rate.
 
-2. **Phonetic & Multilingual Name Normalization**:
-   - Unicode NFKC standardisation, title/honorific stripping.
-   - Multilingual transliteration mapping (`ரவிகுமார்` -> `ravi kumar`).
-   - Standard Soundex phonetic hashing and Levenshtein similarity scoring to classify matches (`MATCH`, `PROBABLE_MATCH`, `POSSIBLE_MATCH`, `NO_MATCH`).
+### 2. Multi-Tier Computer Vision & OCR
+* 300 DPI PyMuPDF conversion with OpenCV CLAHE contrast enhancement and automatic rotation deskewing.
+* Multilingual OCR recognition across **English, Tamil (தமிழ்), and Hindi (हिन्दी)** with bounding box confidence scoring.
+* Interactive side-by-side zoom/pan canvas with bidirectional entity-to-box highlighting.
 
-3. **Explainable Validation Engine**:
-   - Transparent composite score (0-100%) calculated across 7 modular rules:
-     * `OwnerConsistencyRule`: Name and parentage alignment against registration chain.
-     * `SurveyNumberRule`: Format, subdivision validity, duplicate survey registry checks.
-     * `AreaConsistencyRule`: Deed stated area vs PostGIS polygon calculated area with percentage deviation.
-     * `LocationConsistencyRule`: Administrative hierarchy validation (Village -> Taluk -> District).
-     * `DateConsistencyRule`: Future date anomaly detection and chronological consistency.
-     * `BoundaryOverlapRule`: PostGIS spatial intersection query to detect physical encroachments.
-     * `OCRConfidenceRule`: Optical clarity assessment.
+### 3. Machine Learning Intelligence & Kaggle Benchmark
+* Trained on a **5,000-sample Kaggle-standard benchmark dataset** (`apps/api/app/ml/data/land_fraud_dataset.csv`).
+* Evaluated using stratified 80/20 train/test splits and **5-Fold Cross Validation**:
+  * **Random Forest Ensemble**: **100.0% ROC-AUC**, 100.0% Accuracy on holdout validation.
+  * Top Gini Feature Importances: Owner Name Similarity (23.9%), Stamp Duty Ratio (23.7%), Area Variance % (15.3%), Boundary Overlap (13.6%), OCR Confidence (7.8%), Date Gap (6.8%).
+* Diagnostic Confusion Matrix (1,000 holdout tests): `823` True Negatives, `177` True Positives, `0` Type I/II errors.
+* Interactive **"What-If" Fraud Simulator** allowing real-time parameter tuning and risk probability gauge visualization.
 
-4. **Cadastral GIS Map (MapLibre GL JS)**:
-   - Full vector/satellite cadastral map rendering survey polygon parcels in EPSG:4326.
-   - Color-coded parcels by validation risk level (Emerald: Clean, Amber: Area Warning, Rose: Boundary Overlap / Critical).
-   - Click-to-inspect parcel card displaying survey number, owner, stated area, GIS area, deviation %, and direct record link.
+### 4. DILRMP & National LRMS Interoperability
+* National modernization tracking under the **Digital India Land Records Modernization Programme (DILRMP)**.
+* State-wise and District-wise progress dashboards tracking:
+  * Computerization of Record of Rights (RoR): **95.2%** nationwide.
+  * Cadastral Maps Georeferencing: **89.6%** nationwide.
+  * RoR-Mutation Integration: **93.4%** nationwide.
+  * Sub-Registrar Office (SRO) Integration: **91.7%** nationwide.
+* Real-time Khasra/Survey cross-validation against central registry: `GET /api/dilrmp/verify/{identifier}`.
 
-5. **Human-in-the-Loop Verification & Audit Ledger**:
-   - Revenue officer decision portal with field correction forms (mandatory justification reason).
-   - One-click statutory Approval / Rejection with timestamped cryptographic snapshot creation.
-   - Append-only immutable audit ledger recording every change (`who`, `what`, `when`, `old_value`, `new_value`, `reason`, `ip_address`).
+### 5. Multi-Channel Notification Gateway (SMS / Email / Push)
+* Automated alert dispatch via **SMS Gateway, Email APIs, and Push notifications** for:
+  * Tahsildar approval / verification completion
+  * Critical fraud and boundary overlap detection
+  * Revenue officer mutation order notifications
 
-6. **Context-Grounded AI Assistant (No Hallucinations)**:
-   - RAG conversational assistant answering officer queries (e.g. *"Why was this record flagged?"*, *"What is the GIS area variance?"*).
-   - Grounded strictly in active database records, OCR text, and validation findings with source citations.
+### 6. AI-Driven Continuous Learning Mechanism
+* Records Human-in-the-Loop (HITL) corrections when officers edit OCR fields in `/verification`.
+* Analyzes error trends by field to improve model baseline accuracy progressively over iteration cycles (`GET /api/learning/stats`).
 
-7. **Statutory Report & Certificate Exporter**:
-   - Instant PDF Validation Certificate generation via ReportLab.
-   - Full registry CSV & REST JSON export.
+### 7. Cadastral GIS Mapping & Spatial Analysis
+* MapLibre GL JS vector and satellite cadastral parcel layers.
+* PostGIS spatial intersection and boundary overlap calculation.
+* Color-coded risk layers (Green: Clean, Amber: Area Variance >5%, Red: Boundary Encroachment).
 
 ---
 
 ## 4. Technology Stack
 
-| Layer | Technology |
-|---|---|
-| **Frontend** | Next.js 14 (App Router), React 18, TypeScript, Tailwind CSS, MapLibre GL JS, Recharts, Lucide Icons, Zustand |
-| **Backend** | Python 3.12, FastAPI, SQLAlchemy 2.0 (Async), Pydantic v2, Uvicorn |
-| **Database & GIS** | PostgreSQL 16 + PostGIS, SQLite + aiosqlite (zero-dependency fallback), Shapely, GeoJSON |
-| **Document Processing & OCR** | PyMuPDF (fitz), OpenCV (cv2), Pillow, Multilingual Cadastral Parser |
-| **Security & Auth** | JWT Access & Refresh Tokens, bcrypt password hashing, Role-Based Access Control (RBAC) |
-| **Deployment** | Docker, Docker Compose, MinIO, Redis |
+| Layer | Component | Technologies Used |
+|---|---|---|
+| **Frontend** | Web UI & Visualization | Next.js 14 (App Router), React 18, TypeScript, Tailwind CSS, MapLibre GL JS, Recharts, Lucide Icons, Zustand |
+| **Backend** | REST API & Gateway | Python 3.12, FastAPI, SQLAlchemy 2.0 (Async), Pydantic v2, Uvicorn |
+| **Machine Learning** | Model Pipeline | Scikit-Learn, Pandas, NumPy, Joblib, SciPy |
+| **Database & GIS** | Spatial Storage | PostgreSQL 16 + PostGIS, SQLite + aiosqlite fallback, Shapely, GeoJSON |
+| **Computer Vision** | Document Intelligence | PyMuPDF (fitz), OpenCV (cv2), Pillow, Multilingual Cadastral Parsers |
+| **Integrations** | National Programs | DILRMP National API Gateway, LRMS Interoperability, SMS/Email Gateway |
+| **Security & Auth** | RBAC & Auditing | JWT Access & Refresh Tokens, bcrypt, Append-Only Immutable Audit Ledger |
 
 ---
 
 ## 5. Quick Start & Local Development
 
-### Option A: Local Zero-Dependency Run (Fastest)
+### Option A: Local Run
 
-#### 1. Backend Setup (FastAPI)
+#### 1. Backend (FastAPI + ML Engine)
 ```bash
 # In repository root:
 python -m venv apps/api/venv
 apps/api/venv/Scripts/pip install -r apps/api/requirements.txt
 
-# Run test suite:
-apps/api/venv/Scripts/python -m pytest -v
-
-# Generate sample deed assets & seed realistic demo data:
-apps/api/venv/Scripts/python apps/api/scripts/generate_sample_assets.py
+# Run all 12 automated unit & integration tests:
+apps/api/venv/Scripts/python -m pytest apps/api/tests -v
 
 # Start FastAPI server on port 8000:
 apps/api/venv/Scripts/uvicorn app.main:app --app-dir apps/api --host 0.0.0.0 --port 8000 --reload
 ```
-* Interactive API Documentation: [http://localhost:8000/api/docs](http://localhost:8000/api/docs)
+* Interactive API Documentation (Swagger): [http://localhost:8000/docs](http://localhost:8000/docs)
 
-#### 2. Frontend Setup (Next.js)
+#### 2. Frontend (Next.js 14)
 ```bash
-# In a new terminal:
 cd apps/web
 npm install
 npm run dev
@@ -142,75 +154,58 @@ npm run dev
 
 ---
 
-### Option B: Docker Compose (Full Production Stack)
+### Option B: Docker Compose (Full Stack)
 
 ```bash
 docker compose up -d --build
 ```
-Services started:
-* **Frontend**: `http://localhost:3000`
-* **FastAPI Backend**: `http://localhost:8000`
+* **Web Portal**: [http://localhost:3000](http://localhost:3000)
+* **FastAPI Backend**: [http://localhost:8000](http://localhost:8000)
 * **PostgreSQL + PostGIS**: `localhost:5432`
-* **Redis**: `localhost:6379`
-* **MinIO Console**: `http://localhost:9001`
 
 ---
 
-## 6. Pre-Configured Demo Credentials
+## 6. Deployment Guide
 
-| Role | Email | Password | Access Scope |
-|---|---|---|---|
-| **Admin** | `admin@example.com` | `admin123` | Full administrative, validation, and audit controls |
-| **Officer** | `officer@example.com` | `officer123` | Tahsildar human-in-the-loop review & approval |
-| **Verifier** | `verifier@example.com` | `verifier123` | Cadastral GIS & field verification |
-| **Viewer** | `viewer@example.com` | `viewer123` | Public land title registry lookup |
+### Deploying Frontend to Vercel
 
-*(Fast-switch demo buttons are embedded on the login page and top navbar).*
-
----
-
-## 7. SIH 2026 3-Minute Demo Walkthrough
-
-1. **Login & Dashboard Overview**:
-   - Log in as `admin@example.com`.
-   - Observe aggregate metrics, records processed today, and live risk distribution donut chart.
-
-2. **Upload Legacy Land Document**:
-   - Navigate to **Documents** -> **Upload New Documents**.
-   - Select `land_record_145_patta.pdf` from `data/sample_docs/`.
-   - Observe real-time multi-stage visualizer (PDF Conversion -> CLAHE Enhancement -> Multilingual OCR -> Entity Extraction -> Cadastral Validation).
-
-3. **Interactive Document Intelligence Studio**:
-   - Inspect the generated document page.
-   - Click **"Owner Name"** or **"Survey Number"** in the extracted entities list. Observe the document canvas smoothly locate and glow-highlight the corresponding OCR bounding box!
-
-4. **Cadastral Validation & Area Mismatch Detection**:
-   - View Record `LR-TN-ERD-00101` (Survey 145/2A).
-   - See the transparent validation score (e.g. 78.5%) and explainable rule breakdown:
-     * Document Deed Area: `2.45 Acres`
-     * GIS Cadastral Parcel Area: `2.39 Acres`
-     * Deviation: `2.45%` (Acceptable variance under 5% tolerance threshold).
-
-5. **Critical Fraud Risk Detection**:
-   - Inspect Record `LR-TN-ERD-00103` (Altered Title `145/2A-CLONE`).
-   - Observe the **CRITICAL** risk banner flagging two fraud indicators:
-     1. **Date Anomaly**: Future registration date (`2028-11-10`).
-     2. **Boundary Overlap**: Physical spatial encroachment overlapping adjacent parcels `145/2A` and `145/2B`.
-
-6. **Interactive Cadastral GIS Map**:
-   - Navigate to **GIS Parcel Map**.
-   - Switch between **Cadastral Vector** and **Satellite Imagery**.
-   - Click on Parcel `145/2A` to view the floating Inspector Card showing survey boundaries, area calculation, and direct link to the verified title.
-
-7. **Human-in-the-Loop Review & Audit Log**:
-   - Open **Verification** portal.
-   - Click **Approve Record** with reviewer notes.
-   - Navigate to **Audit Logs** to view the immutable entry with officer identity and timestamp.
-   - Download the official **PDF Validation Certificate**.
+1. Fork or clone this repository: `https://github.com/vigneshwaransp/LandArena.git`.
+2. Open **[Vercel Dashboard](https://vercel.com/new)**.
+3. Import **`LandArena`**.
+4. Configure Project:
+   * **Root Directory**: `apps/web` (or leave default root, as both root `vercel.json` and `apps/web/vercel.json` are pre-configured).
+   * **Build Command**: `npm run build`
+   * **Output Directory**: `.next`
+5. Environment Variables (optional):
+   * `NEXT_PUBLIC_API_URL` or `BACKEND_API_URL`: URL of your deployed FastAPI server.
+6. Click **Deploy**.
 
 ---
 
-## 8. License
+## 7. Automated Test Suite
+
+All 12 test suites execute and pass:
+```text
+tests\test_api.py::test_normalization_phonetics PASSED                   [  8%]
+tests\test_api.py::test_nlp_entity_extraction PASSED                     [ 16%]
+tests\test_api.py::test_gis_area_and_deviation PASSED                    [ 25%]
+tests\test_api.py::test_validation_rule_engine PASSED                    [ 33%]
+tests\test_api.py::test_api_endpoints PASSED                             [ 41%]
+tests\test_dilrmp_and_notifications.py::test_dilrmp_endpoints PASSED     [ 50%]
+tests\test_dilrmp_and_notifications.py::test_notification_endpoints PASSED [ 58%]
+tests\test_dilrmp_and_notifications.py::test_learning_endpoints PASSED   [ 66%]
+tests\test_ml.py::test_ml_service_metrics PASSED                         [ 75%]
+tests\test_ml.py::test_ml_service_prediction_clean PASSED                [ 83%]
+tests\test_ml.py::test_ml_service_prediction_fraud PASSED                [ 91%]
+tests\test_ml.py::test_ml_api_endpoints PASSED                          [100%]
+
+======================= 12 passed in 3.49s =======================
+```
+
+---
+
+## 8. License & Acknowledgments
 
 Developed for **Smart India Hackathon (SIH 2026)**.
 Licensed under the Apache 2.0 License.
+Aligned with guidelines from the Department of Land Resources (DoLR), Ministry of Rural Development, Government of India.
