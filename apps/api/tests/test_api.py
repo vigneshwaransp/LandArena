@@ -135,3 +135,20 @@ async def test_api_endpoints():
         assert r_chat.status_code == 200
         chat_data = r_chat.json()
         assert len(chat_data["answer"]) > 20
+
+        # 8. Tahsildars List
+        r_tahsildars = await client.get("/api/parcels/tahsildars/all")
+        assert r_tahsildars.status_code == 200
+        tahsildar_list = r_tahsildars.json()
+        assert len(tahsildar_list) >= 5
+        assert "center" in tahsildar_list[0]
+        assert "boundary_geojson" in tahsildar_list[0]
+        assert "lat" in tahsildar_list[0]["center"]
+
+        # 9. Tahsildar Taluk Jurisdiction
+        r_jurisdiction = await client.get("/api/parcels/jurisdiction/Perundurai")
+        assert r_jurisdiction.status_code == 200
+        juris_data = r_jurisdiction.json()
+        assert juris_data["jurisdiction"]["taluk"] == "Perundurai"
+        assert "parcels" in juris_data
+

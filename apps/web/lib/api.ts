@@ -254,8 +254,18 @@ class ApiClient {
   async getLearningStats() {
     return this.request<any>('/learning/stats');
   }
+
+  // Tahsildars & Taluk Jurisdictions
+  async getTahsildars() {
+    return this.request<any[]>('/parcels/tahsildars/all');
+  }
+
+  async getTahsildarJurisdiction(taluk: string) {
+    return this.request<any>(`/parcels/jurisdiction/${encodeURIComponent(taluk)}`);
+  }
 }
 
 export const api = new ApiClient();
+
 
 
