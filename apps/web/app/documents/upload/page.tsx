@@ -44,7 +44,8 @@ export default function DocumentUploadPage() {
       size: '142 KB',
       lang: 'Tamil / English',
       type: 'PATTA',
-      recordId: 'rec-145-2a'
+      docId: 'c5b46e54-6c85-4f37-9f69-7ec4ad47db1f',
+      recordId: 'LR-TN-ERD-00101'
     },
     {
       title: 'Sub-Registrar Registered Sale Deed',
@@ -52,15 +53,17 @@ export default function DocumentUploadPage() {
       size: '215 KB',
       lang: 'English',
       type: 'SALE_DEED',
-      recordId: 'rec-89-1'
+      docId: 'fe9dea3e-e8ca-4bcb-a316-364a36c7b45c',
+      recordId: 'LR-TN-ERD-00102'
     },
     {
-      title: 'National Khasra / Khatauni Record',
-      sub: 'Bhavani Taluk • Survey 210/3C (Anitha)',
-      size: '188 KB',
-      lang: 'Hindi / English',
-      type: 'PATTA',
-      recordId: 'rec-210-3c'
+      title: 'Altered Deed (Fraud Flagged)',
+      sub: 'Perundurai Taluk • Survey 145/2A-CLONE (Rajesh Kumar)',
+      size: '198 KB',
+      lang: 'Tamil / English',
+      type: 'SALE_DEED',
+      docId: 'af1a9ab5-cde7-48da-be73-3adaae1f4f61',
+      recordId: 'LR-TN-ERD-00103'
     }
   ];
 
@@ -77,7 +80,7 @@ export default function DocumentUploadPage() {
     }
   };
 
-  const runPipelineAnimation = (targetRecordId?: string) => {
+  const runPipelineAnimation = (targetDocId?: string, targetRecordId?: string) => {
     setUploading(true);
     setError(null);
     setUploadProgress(15);
@@ -111,9 +114,14 @@ export default function DocumentUploadPage() {
     setTimeout(() => {
       setUploadProgress(100);
       setActiveStageId(6);
-      setCurrentStage('Ensemble fraud risk scoring complete! Redirecting...');
+      setCurrentStage('Digitization complete! Opening Inspect Document Studio...');
       setTimeout(() => {
-        router.push(targetRecordId ? `/records/${targetRecordId}` : '/records');
+        const dest = targetDocId
+          ? `/documents/${targetDocId}`
+          : targetRecordId
+          ? `/records/${targetRecordId}`
+          : '/documents';
+        router.push(dest);
       }, 700);
     }, 3000);
   };
@@ -129,20 +137,18 @@ export default function DocumentUploadPage() {
 
     try {
       const doc = await api.uploadDocument(selectedFile);
-      runPipelineAnimation(doc?.id);
+      runPipelineAnimation(doc?.id || 'c5b46e54-6c85-4f37-9f69-7ec4ad47db1f');
     } catch (err: any) {
       console.warn('API upload failed, executing simulated pipeline:', err);
-      // Even if backend is waking up, deliver seamless user experience
-      runPipelineAnimation('rec-145-2a');
+      runPipelineAnimation('c5b46e54-6c85-4f37-9f69-7ec4ad47db1f', 'LR-TN-ERD-00101');
     }
   };
 
   const handleSelectSample = (sample: typeof sampleDeeds[0]) => {
-    // Create simulated file
-    const blob = new Blob(["Demo Land Deed Content for " + sample.title], { type: 'application/pdf' });
+    const blob = new Blob(['Demo Land Deed Content for ' + sample.title], { type: 'application/pdf' });
     const file = new File([blob], `${sample.title.toLowerCase().replace(/\s+/g, '_')}.pdf`, { type: 'application/pdf' });
     setSelectedFile(file);
-    runPipelineAnimation(sample.recordId);
+    runPipelineAnimation(sample.docId, sample.recordId);
   };
 
   return (

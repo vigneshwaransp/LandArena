@@ -4,7 +4,7 @@ import logging
 from typing import Dict, Any, List, Optional
 import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, or_
 
 from app.core.config import settings
 from app.models.models import LandRecord, Anomaly, Document, Parcel
@@ -84,7 +84,7 @@ class AIAssistantService:
         target_record = None
         record_context_text = ""
         if record_id:
-            res = await db.execute(select(LandRecord).where(LandRecord.id == record_id))
+            res = await db.execute(select(LandRecord).where(or_(LandRecord.id == record_id, LandRecord.record_id == record_id)))
             target_record = res.scalar_one_or_none()
 
         if target_record:

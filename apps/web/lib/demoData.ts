@@ -1,0 +1,72 @@
+export const DEMO_DOCUMENTS = [
+  {
+    id: "c5b46e54-6c85-4f37-9f69-7ec4ad47db1f",
+    filename: "land_record_145_patta.pdf",
+    document_type: "PATTA",
+    type_confidence: 0.98,
+    file_size: 142800,
+    page_count: 1,
+    mime_type: "application/pdf",
+    status: "COMPLETED",
+    processing_progress: 100,
+    current_stage: "Digitization Complete",
+    created_at: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
+    record_id: "LR-TN-ERD-00101"
+  },
+  {
+    id: "fe9dea3e-e8ca-4bcb-a316-364a36c7b45c",
+    filename: "sale_deed_89_nasiyanur.pdf",
+    document_type: "SALE_DEED",
+    type_confidence: 0.96,
+    file_size: 215400,
+    page_count: 1,
+    mime_type: "application/pdf",
+    status: "COMPLETED",
+    processing_progress: 100,
+    current_stage: "Digitization Complete",
+    created_at: new Date(Date.now() - 5 * 3600 * 1000).toISOString(),
+    record_id: "LR-TN-ERD-00102"
+  },
+  {
+    id: "af1a9ab5-cde7-48da-be73-3adaae1f4f61",
+    filename: "fraud_indicator_deed_145_altered.pdf",
+    document_type: "SALE_DEED",
+    type_confidence: 0.94,
+    file_size: 198000,
+    page_count: 1,
+    mime_type: "application/pdf",
+    status: "COMPLETED",
+    processing_progress: 100,
+    current_stage: "Flagged with Critical Anomalies",
+    created_at: new Date(Date.now() - 8 * 3600 * 1000).toISOString(),
+    record_id: "LR-TN-ERD-00103"
+  },
+  {
+    id: "0661f864-51ee-4d1c-b9d3-c1d4d8657e0e",
+    filename: "tamil_patta_chitta_210_perundurai.pdf",
+    document_type: "PATTA",
+    type_confidence: 0.99,
+    file_size: 168200,
+    page_count: 1,
+    mime_type: "application/pdf",
+    status: "COMPLETED",
+    processing_progress: 100,
+    current_stage: "Digitization Complete",
+    created_at: new Date(Date.now() - 12 * 3600 * 1000).toISOString(),
+    record_id: "LR-TN-ERD-00104"
+  },
+  {
+    id: "328fe86f-7ab6-4c31-9e52-c47fdd378c18",
+    filename: "tax_receipt_kist_45_chithode.pdf",
+    document_type: "TAX_RECEIPT",
+    type_confidence: 0.97,
+    file_size: 94500,
+    page_count: 1,
+    mime_type: "application/pdf",
+    status: "COMPLETED",
+    processing_progress: 100,
+    current_stage: "Digitization Complete",
+    created_at: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
+    record_id: "LR-TN-ERD-00105"
+  }
+];

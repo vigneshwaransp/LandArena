@@ -41,8 +41,31 @@ export default function Navbar() {
     { role: 'VIEWER', name: 'R. Senthil', title: 'Public Records Viewer' },
   ];
 
+  // Local read storage helpers to guarantee persistence across navigation and reloads
+  const getLocalReadIds = (): Set<string> => {
+    if (typeof window === 'undefined') return new Set();
+    try {
+      const saved = localStorage.getItem('landarena_read_notifications');
+      return new Set(saved ? JSON.parse(saved) : []);
+    } catch {
+      return new Set();
+    }
+  };
+
+  const saveLocalReadIds = (ids: string[]) => {
+    if (typeof window === 'undefined') return;
+    try {
+      const current = getLocalReadIds();
+      ids.forEach((id) => current.add(id));
+      localStorage.setItem('landarena_read_notifications', JSON.stringify(Array.from(current)));
+    } catch (e) {
+      console.warn('Could not save read notification state:', e);
+    }
+  };
+
   useEffect(() => {
     async function loadNotifications() {
+      const readIds = getLocalReadIds();
       try {
         const data = await api.listNotifications();
         if (Array.isArray(data) && data.length > 0) {
@@ -55,7 +78,7 @@ export default function Navbar() {
                 ? new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                 : 'Recent',
               type: n.channel === 'EMAIL' ? 'critical' : n.channel === 'SMS' ? 'success' : 'warning',
-              read: Boolean(n.read),
+              read: Boolean(n.read) || readIds.has(String(n.id)),
             }))
           );
           return;
@@ -65,9 +88,9 @@ export default function Navbar() {
       }
 
       setNotifications([
-        { id: '1', title: 'Critical Fraud Flagged', message: 'Future date on Deed 145/2A-CLONE', time: '5m ago', type: 'critical', read: false },
-        { id: '2', title: 'Area Mismatch Warning', message: 'Record 145/2A has 2.45% GIS deviation', time: '12m ago', type: 'warning', read: false },
-        { id: '3', title: 'Digitization Complete', message: 'Patta 210/3C verified successfully', time: '1h ago', type: 'success', read: false },
+        { id: '1', title: 'Critical Fraud Flagged', message: 'Future date on Deed 145/2A-CLONE', time: '5m ago', type: 'critical', read: readIds.has('1') },
+        { id: '2', title: 'Area Mismatch Warning', message: 'Record 145/2A has 2.45% GIS deviation', time: '12m ago', type: 'warning', read: readIds.has('2') },
+        { id: '3', title: 'Digitization Complete', message: 'Patta 210/3C verified successfully', time: '1h ago', type: 'success', read: readIds.has('3') },
       ]);
     }
     loadNotifications();
@@ -76,6 +99,7 @@ export default function Navbar() {
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   const handleMarkAllRead = async () => {
+    saveLocalReadIds(notifications.map((n) => n.id));
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
     try {
       await api.markAllNotificationsRead();
@@ -85,6 +109,7 @@ export default function Navbar() {
   };
 
   const handleNotificationClick = async (id: string) => {
+    saveLocalReadIds([id]);
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, read: true } : n))
     );
@@ -183,16 +208,16 @@ export default function Navbar() {
           </button>
 
           {showNotifMenu && (
-            <div className="absolute right-0 mt-2 w-84 bg-white border border-[#E6E2DA] rounded-2xl shadow-[0_10px_30px_rgba(45,58,49,0.08)] p-4 z-50 animate-in fade-in zoom-in-95 duration-150">
+            <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white border border-[#E6E2DA] rounded-2xl shadow-[0_10px_30px_rgba(45,58,49,0.08)] p-4 z-50 animate-in fade-in zoom-in-95 duration-150">
               <div className="flex items-center justify-between pb-2.5 border-b border-[#E6E2DA]">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-serif font-bold text-[#2D3A31]">Notifications & Alerts</span>
                   {unreadCount > 0 ? (
-                    <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[#C27B66]/15 text-[#C27B66] font-mono font-bold">
+                    <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#C27B66]/15 text-[#C27B66] font-mono font-bold">
                       {unreadCount} new
                     </span>
                   ) : (
-                    <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[#8C9A84]/15 text-[#4F6C57] font-mono font-medium">
+                    <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#8C9A84]/15 text-[#4F6C57] font-mono font-medium">
                       All caught up
                     </span>
                   )}
@@ -201,10 +226,10 @@ export default function Navbar() {
                   type="button"
                   onClick={handleMarkAllRead}
                   disabled={unreadCount === 0}
-                  className={`text-[10px] font-semibold transition-colors ${
+                  className={`text-[10px] font-semibold transition-all px-2.5 py-1 rounded-full ${
                     unreadCount > 0
-                      ? 'text-[#C27B66] hover:underline cursor-pointer'
-                      : 'text-[#8C9A84] opacity-50 cursor-default'
+                      ? 'text-[#C27B66] bg-[#C27B66]/15 hover:bg-[#C27B66]/25 cursor-pointer font-bold'
+                      : 'text-[#8C9A84] bg-[#F2F0EB] opacity-60 cursor-default'
                   }`}
                 >
                   {unreadCount > 0 ? 'Mark all read' : 'All read ✓'}
@@ -218,37 +243,40 @@ export default function Navbar() {
                     <div
                       key={n.id}
                       onClick={() => handleNotificationClick(n.id)}
-                      className={`py-2.5 px-2 rounded-xl transition-all cursor-pointer ${
+                      className={`py-2.5 px-2.5 rounded-xl transition-all cursor-pointer ${
                         n.read
-                          ? 'hover:bg-[#F9F8F4] opacity-65'
-                          : 'bg-[#F2F0EB]/50 hover:bg-[#F2F0EB] font-medium'
+                          ? 'hover:bg-[#F9F8F4] opacity-75'
+                          : 'bg-[#F2F0EB]/60 hover:bg-[#F2F0EB] font-medium shadow-[inset_0_0_0_1px_rgba(194,123,102,0.15)]'
                       }`}
                       title={n.read ? 'Already read' : 'Click to mark as read'}
                     >
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5">
-                          {!n.read && (
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#C27B66] shrink-0" />
+                        <div className="flex items-center gap-2">
+                          {!n.read ? (
+                            <span className="w-2 h-2 rounded-full bg-[#C27B66] shrink-0 animate-pulse" />
+                          ) : (
+                            <span className="text-[10px] text-[#4F6C57] shrink-0 font-bold">✓</span>
                           )}
                           <span
                             className={`text-[11px] ${
-                              n.read ? 'font-normal text-[#2D3A31]/80' : 'font-bold'
-                            } ${
-                              n.type === 'critical'
-                                ? 'text-[#C27B66]'
-                                : n.type === 'warning'
-                                ? 'text-[#8C9A84]'
-                                : 'text-[#4F6C57]'
+                              n.read ? 'font-normal text-[#2D3A31]/80' : 'font-bold text-[#2D3A31]'
                             }`}
                           >
                             {n.title}
                           </span>
                         </div>
-                        <span className="text-[9px] text-[#8C9A84] font-mono shrink-0 ml-2">
-                          {n.time}
-                        </span>
+                        <div className="flex items-center gap-2 shrink-0 ml-2">
+                          <span className="text-[9px] text-[#8C9A84] font-mono">
+                            {n.time}
+                          </span>
+                          {n.read ? (
+                            <span className="text-[8px] text-[#8C9A84] bg-[#F2F0EB] px-1.5 py-0.5 rounded font-mono">read</span>
+                          ) : (
+                            <span className="text-[8px] text-[#C27B66] bg-[#C27B66]/15 font-bold px-1.5 py-0.5 rounded font-mono">new</span>
+                          )}
+                        </div>
                       </div>
-                      <p className="text-[11px] text-[#2D3A31]/80 mt-1 pl-3">{n.message}</p>
+                      <p className="text-[11px] text-[#2D3A31]/80 mt-1 pl-4">{n.message}</p>
                     </div>
                   ))
                 )}
